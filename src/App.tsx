@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { GraphQLClient, gql } from 'graphql-request';
 
 import __ from 'lodash/fp';
-import _ from 'lodash';
-/*;
+import _, { values } from 'lodash';
+/*
 import { v4 } from 'uuid';
 
 import * as Blueprint from '@blueprintjs/core';
@@ -56,12 +56,7 @@ async function doMutation(str: string) {
   // ... or create a GraphQL client instance to send requests
   const client = new GraphQLClient(endpoint, { headers: {} });
   const mutation = gql`
-    mutation AddMovie($title: String!, $releaseDate: Int!) {
-      insert_movies_one(object: { title: $title, releaseDate: $releaseDate }) {
-        title
-        releaseDate
-      }
-    }
+    ${str}
   `;
   const graph = client.request(mutation).then((data) => {
     return data;
@@ -74,8 +69,8 @@ function App() {
     items: [],
   });
   const [dataUser, setDataUser] = useState<Users>({ items: [] });
-  const [userBalance, setUserBalance] = useState(0);
-  const [userSelected, setUserSelected] = useState('all');
+  const [userBalance, setUserBalance] = useState<number>(0);
+  const [userSelected, setUserSelected] = useState<string>('all');
   useEffect(async () => {
     if (userSelected === 'all') {
       const result1 = await getQuery(`
@@ -138,11 +133,58 @@ function App() {
         userBalance={userBalance}
         userSelected={userSelected}
       />
+      <hr />
+      <h1 className="text-8xl text-center p-8">Emit transaction</h1>
+      <TransactionEmissionPanel />
     </>
   );
 }
 
 export default App;
+
+function TransactionEmissionPanel() {
+  const [emitAmount, setEmitAmount] = useState<number>(0);
+  const [emitAccount, setEmitAccount] = useState<string>('');
+  return (
+    <div className="border-cyan-600 border-2 rounded-lg shadow-lg m-4 mx-80 p-16 flex flex-col">
+      <div className="flex justify-around">
+        <div className="p-4 flex flex-col items-center">
+          <label className="text-lg">Account</label>
+          <input
+            type="text"
+            className="border-cyan-600 border-2 rounded-md w-44 p-2 text-center"
+            placeholder="Account Name"
+            onChange={(event) => setEmitAccount(event.target.value)}
+          />
+        </div>
+        <div className="p-4 flex flex-col items-center">
+          <label className="text-lg">Amount</label>
+          <input
+            type="number"
+            min="0"
+            max="9999"
+            className="border-cyan-600 border-2 rounded-md w-44 p-2 text-center"
+            placeholder="Credits Amount"
+            onChange={(event) => setEmitAmount(Number(event.target.value))}
+          />
+        </div>
+      </div>
+      <div className="flex items-center justify-center mt-6">
+        <input
+          value="Emit Payament"
+          type="submit"
+          className="border-2 border-cyan-600 rounded-lg p-2 hover:bg-cyan-600 hover:border-cyan-400 hover:text-white"
+          onClick={() => {
+            doMutation(`mutation{
+            earnCredits(id:"${emitAccount}",amount:${emitAmount})
+          }`);
+            window.location.reload();
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 function UsersBalanceMonitor(props: {
   userSelected: string;
@@ -217,7 +259,7 @@ function Transaction(props: { transaction: UserTransaction }) {
   return (
     <div className="flex shadow-sm hover:bg-gray-50 transform transition duration-100 hover:scale-99 cursor-default">
       <div className="flex flex-col flex-grow justify-around p-1">
-        <div className=" text-gray-200">
+        <div className=" text-gray-400">
           {dateOperation.toFormat('yyyy LLL dd')}
         </div>
         <div className=" text-black">{props.transaction.id}</div>
