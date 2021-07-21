@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import classNames from 'classnames';
 import { DateTime } from 'luxon';
 import type { UserTransaction, UserTransactions } from './App';
-import { doMutation } from './GraphQLFunctions';
+import { doMutation, getQuery, getSubscribe } from './GraphQLFunctions';
 
 function TransactionMonitor(props: { data: UserTransactions }) {
   return (
@@ -68,11 +68,15 @@ export function TransactionEmissionPanel(props: { handleToast: () => void }) {
           value="Emit Payament"
           type="submit"
           className="border-2 border-cyan-600 bg-white rounded-lg p-2 cursor-pointer hover:bg-cyan-600 hover:border-cyan-400 hover:text-white"
-          onClick={() => {
-            doMutation(`mutation{
+          onClick={async () => {
+            const responseString = await doMutation(`mutation{
               earnCredits(id:"${emitAccount}",amount:${emitAmount})
             }`);
-            props.handleToast();
+
+            const b = await getSubscribe(responseString.earnCredits);
+            console.log(b);
+
+            /// props.handleToast();
             //window.location.reload();
           }}
         />

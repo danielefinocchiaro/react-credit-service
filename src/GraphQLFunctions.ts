@@ -1,22 +1,28 @@
-import { gql, GraphQLClient } from 'graphql-request';
+import { GraphQLClient } from 'graphql-request';
+
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client';
+import { WebSocketLink } from '@apollo/client/link/ws';
+import gql from 'graphql-tag';
+import { getMainDefinition } from '@apollo/client/utilities';
+
+const GRAPHQL_ENDPOINT = 'https://dev.graphql-v2.keix.com/graphql';
 
 export const getQuery = function (str: string): any {
-  const endpoint = 'https://dev.graphql-v2.keix.com/graphql';
   const query = gql`
     ${str}
   `;
   // ... or create a GraphQL client instance to send requests
-  const client = new GraphQLClient(endpoint, { headers: {} });
+  const client = new GraphQLClient(GRAPHQL_ENDPOINT, { headers: {} });
   const graph = client.request(query).then((data) => {
     return data;
   });
   return graph;
 };
 
-export const doMutation = function (str: string) {
-  const endpoint = 'https://dev.graphql-v2.keix.com/graphql';
+export const doMutation = function (str: string): any {
   // ... or create a GraphQL client instance to send requests
-  const client = new GraphQLClient(endpoint, { headers: {} });
+  const client = new GraphQLClient(GRAPHQL_ENDPOINT, { headers: {} });
   const mutation = gql`
     ${str}
   `;
@@ -25,3 +31,78 @@ export const doMutation = function (str: string) {
   });
   return graph;
 };
+
+export const getSubscribe = function (stringa: string): any {
+  const GRAPHQL_ENDPOINT2 = 'wss://dev.graphql-v2.keix.com/graphl';
+
+  const httpLink = new HttpLink({
+    uri: 'http://dev.graphql-v2.keix.com/graphl',
+  });
+
+  const wsLink = new WebSocketLink({
+    uri: GRAPHQL_ENDPOINT2,
+    options: {
+      reconnect: true,
+    },
+  });
+
+  const splitLink = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+      return (
+        definition.kind === 'OperationDefinition' &&
+        definition.operation === 'subscription'
+      );
+    },
+    wsLink,
+    httpLink,
+  );
+
+  const clientApollo = new ApolloClient({
+    link: splitLink,
+    cache: new InMemoryCache(),
+  });
+
+  /* const apolloClient = new ApolloClient({
+    cache: new InMemoryCache(),
+    uri: clientApollo,
+  } as any); */
+
+  clientApollo
+    .subscribe({
+      query: gql`
+        subscription($id: String!) {
+          subscribeForEvents(id: $id) {
+            id
+            stream_name
+            type
+            time
+            position
+            global_position
+            data
+          }
+        }
+      `,
+      variables: { id: stringa },
+    })
+    .subscribe({
+      next(data) {
+        console.log(data);
+      },
+    });
+};
+
+/* gql`
+        subscription($id: String!) {
+          subscribeForEvents(id: $id) {
+            id
+            stream_name
+            type
+            time
+            position
+            global_position
+            data
+          }
+        }
+      `,
+      variables: { id: stringa }, */
