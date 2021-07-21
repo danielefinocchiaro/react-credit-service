@@ -33,10 +33,10 @@ export const doMutation = function (str: string): any {
 };
 
 export const getSubscribe = function (stringa: string): any {
-  const GRAPHQL_ENDPOINT2 = 'wss://dev.graphql-v2.keix.com/graphl';
+  const GRAPHQL_ENDPOINT2 = 'wss://dev.graphql-v2.keix.com/graphql';
 
   const httpLink = new HttpLink({
-    uri: 'http://dev.graphql-v2.keix.com/graphl',
+    uri: 'http://dev.graphql-v2.keix.com/graphql',
   });
 
   const wsLink = new WebSocketLink({
@@ -63,12 +63,7 @@ export const getSubscribe = function (stringa: string): any {
     cache: new InMemoryCache(),
   });
 
-  /* const apolloClient = new ApolloClient({
-    cache: new InMemoryCache(),
-    uri: clientApollo,
-  } as any); */
-
-  clientApollo
+  const graph = clientApollo
     .subscribe({
       query: gql`
         subscription($id: String!) {
@@ -87,9 +82,15 @@ export const getSubscribe = function (stringa: string): any {
     })
     .subscribe({
       next(data) {
-        console.log(data);
+        console.log(data.data.subscribeForEvents.type);
+        aa(data.data.subscribeForEvents.type);
+        return data.data.subscribeForEvents.type;
+      },
+      error(err) {
+        console.error('err', err);
       },
     });
+  return graph;
 };
 
 /* gql`
@@ -106,3 +107,7 @@ export const getSubscribe = function (stringa: string): any {
         }
       `,
       variables: { id: stringa }, */
+
+function aa(aa: string) {
+  console.log(aa, 'PAsSATO');
+}
