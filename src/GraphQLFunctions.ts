@@ -6,6 +6,16 @@ import { WebSocketLink } from '@apollo/client/link/ws';
 import gql from 'graphql-tag';
 import { getMainDefinition } from '@apollo/client/utilities';
 
+interface SubscribedItem {
+  id: string;
+  stream_name: string;
+  type: string;
+  time: string;
+  position: number;
+  global_position: number;
+  data: { type?: string };
+}
+
 const GRAPHQL_ENDPOINT = 'https://dev.graphql-v2.keix.com/graphql';
 
 export const getQuery = function (str: string): any {
@@ -32,7 +42,9 @@ export const doMutation = function (str: string): any {
   return graph;
 };
 
-export const getSubscribe = function (stringa: string): any {
+export const getSubscribe = async function (
+  stringa: string,
+): Promise<SubscribedItem> {
   const GRAPHQL_ENDPOINT2 = 'wss://dev.graphql-v2.keix.com/graphql';
 
   const httpLink = new HttpLink({
@@ -63,33 +75,33 @@ export const getSubscribe = function (stringa: string): any {
     cache: new InMemoryCache(),
   });
 
-  const graph = clientApollo
-    .subscribe({
-      query: gql`
-        subscription($id: String!) {
-          subscribeForEvents(id: $id) {
-            id
-            stream_name
-            type
-            time
-            position
-            global_position
-            data
+  return new Promise((resolve, reject) => {
+    const graph = clientApollo
+      .subscribe({
+        query: gql`
+          subscription($id: String!) {
+            subscribeForEvents(id: $id) {
+              id
+              stream_name
+              type
+              time
+              position
+              global_position
+              data
+            }
           }
-        }
-      `,
-      variables: { id: stringa },
-    })
-    .subscribe({
-      next(data) {
-        console.log(data.data.subscribeForEvents);
-        return data.data.subscribeForEvents;
-      },
-      error(err) {
-        console.error('err', err);
-      },
-    });
-  return graph;
+        `,
+        variables: { id: stringa },
+      })
+      .subscribe({
+        next(data) {
+          resolve(data.data.subscribeForEvents);
+        },
+        error(err) {
+          reject(err);
+        },
+      });
+  });
 };
 
 /* gql`

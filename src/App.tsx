@@ -10,7 +10,7 @@ import '@blueprintjs/core/lib/css/blueprint.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 
 import { Pagination } from './Pagination';
-import { TransactionEmissionPanel } from './Transaction';
+import { TransactionAddPanel, TransactionRemovePanel } from './Transaction';
 
 import { getQuery } from './GraphQLFunctions';
 import { UsersBalanceMonitor, UsersMonitor } from './Users';
@@ -97,8 +97,8 @@ function App() {
     toaster = ref;
   };
 
-  let addToast = () => {
-    toaster.show({ message: 'Added!', intent: 'success' });
+  let addToast = (props: { message: string; type: Blueprint.Intent }) => {
+    toaster.show({ message: props.message, intent: props.type });
   };
 
   return (
@@ -117,7 +117,9 @@ function App() {
       />
       <hr />
       <h1 className="text-8xl text-center p-8">Emit transaction</h1>
-      <TransactionEmissionPanel handleToast={addToast} />
+      <TransactionAddPanel handleToast={addToast} />
+      <h1 className="text-8xl text-center p-8">Use Credits</h1>
+      <TransactionRemovePanel handleToast={addToast} />
     </>
   );
 }
