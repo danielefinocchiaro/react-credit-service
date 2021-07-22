@@ -82,9 +82,8 @@ export const getSubscribe = function (stringa: string): any {
     })
     .subscribe({
       next(data) {
-        console.log(data.data.subscribeForEvents.type);
-        aa(data.data.subscribeForEvents.type);
-        return data.data.subscribeForEvents.type;
+        console.log(data.data.subscribeForEvents);
+        return data.data.subscribeForEvents;
       },
       error(err) {
         console.error('err', err);
@@ -107,7 +106,3 @@ export const getSubscribe = function (stringa: string): any {
         }
       `,
       variables: { id: stringa }, */
-
-function aa(aa: string) {
-  console.log(aa, 'PAsSATO');
-}
